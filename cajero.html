@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cafetería - Módulo de Caja y Cobro</title>
+    <link rel="stylesheet" href="build/css/app.css">
+    <style>
+        /* Estilos específicos para la vista de Caja (Recuerda moverlos a tu SCSS luego) */
+        .grid-caja {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+        @media (max-width: 768px) {
+            .grid-caja {
+                grid-template-columns: 1fr;
+            }
+        }
+        /* Panel Izquierdo: Lista de Comandas */
+        .lista-comandas {
+            background-color: #f8f8f8;
+            padding: 2rem;
+            border-radius: 1rem;
+            height: fit-content;
+        }
+        .comanda-pendiente {
+            background-color: #fff;
+            border: 2px solid #ccc;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .comanda-pendiente:hover, .comanda-pendiente.activa {
+            border-color: #e9a84b; /* Color principal */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .comanda-pendiente h4 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.8rem;
+        }
+        .comanda-pendiente p {
+            margin: 0;
+            color: #666;
+            font-size: 1.4rem;
+        }
+        
+        /* Panel Derecho: Ticket de Cobro */
+        .ticket-cobro {
+            background-color: #fff;
+            padding: 3rem;
+            border: 2px dashed #ccc; /* Efecto de factura */
+            border-radius: 1rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .ticket-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 1rem;
+        }
+        .tabla-ticket {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+            font-size: 1.6rem;
+        }
+        .tabla-ticket th, .tabla-ticket td {
+            padding: 1rem 0;
+            border-bottom: 1px dashed #eee;
+            text-align: left;
+        }
+        .tabla-ticket th:last-child, .tabla-ticket td:last-child {
+            text-align: right;
+        }
+        .totales-ticket {
+            text-align: right;
+            font-size: 1.8rem;
+            margin-bottom: 2rem;
+            border-top: 2px solid #333;
+            padding-top: 1rem;
+        }
+        .totales-ticket p {
+            margin: 0.5rem 0;
+        }
+        .total-final {
+            font-weight: 900;
+            color: #e9a84b;
+            font-size: 2.4rem;
+        }
+        .metodos-pago {
+            background-color: #f8f8f8;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            margin-top: 2rem;
+        }
+        .btn-pagar {
+            width: 100%;
+            margin-top: 2rem;
+            font-size: 1.8rem;
+            padding: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <header class="header"> 
+        <header class="header header-inicio">
+        <div class="contenido-header contenedor">
+            <div class="barra">
+                <div class="logo">
+                    <img src="build/img/logo.svg" alt="logo cafeteria">
+                </div>
+
+                <nav class="nav-principal">
+                    <a class="activo" href="index.html">Inicio</a>
+                    <a href="nosotros.html">Nosotros</a>
+                   <!-- <a href="proceso.html">Proceso</a>-->
+                    <a href="menu.html">Menú</a>
+                    <a href="galeria.html">Galería</a>
+                    <a href="contacto.html">Contacto</a>
+                    <a href="mesero.html">Mesero</a>
+                    <a href="cajero.html">Cajero</a>
+                    <a href="gerente.html">Gerente</a>
+                    <a href="administrador.html">Administrador</a>
+                
+
+                </nav>
+            </div>
+
+            <div class="texto-header">
+                <h1>Disfruta una deliciosa taza de café</h1>
+            </div>
+        </div>
+    </header>
+
+    <main class="contenedor contenido-principal">
+        <h2>Gestión de Pagos</h2>
+        
+        <div class="grid-caja">
+            <aside class="lista-comandas">
+                <h3>Cuentas Pendientes</h3>
+                
+                <div class="comanda-pendiente activa">
+                    <h4>Mesa 2 (Interior)</h4>
+                    <p>Atendido por: Carlos</p>
+                    <p><strong>Total: $12.50</strong></p>
+                </div>
+                
+                <div class="comanda-pendiente">
+                    <h4>Mesa 1 (Terraza)</h4>
+                    <p>Atendido por: Ana</p>
+                    <p><strong>Total: $8.00</strong></p>
+                </div>
+            </aside>
+
+            <section class="ticket-cobro">
+                <div class="ticket-header">
+                    <h3>Cafetería</h3>
+                    <p>Ticket de Consumo - Mesa 2</p>
+                </div>
+
+                <table class="tabla-ticket">
+                    <thead>
+                        <tr>
+                            <th>Cant.</th>
+                            <th>Descripción</th>
+                            <th>Importe</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>2</td>
+                            <td>Capuchino</td>
+                            <td>$6.00</td>
+                        </tr>
+                        <tr>
+                            <td>1</td>
+                            <td>Pastel de Chocolate</td>
+                            <td>$4.50</td>
+                        </tr>
+                        <tr>
+                            <td>1</td>
+                            <td>Agua Mineral</td>
+                            <td>$2.00</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="totales-ticket">
+                    <p>Subtotal: $12.50</p>
+                    <p>Impuesto (IVA): $0.00</p>
+                    <p class="total-final">Total a Pagar: $12.50</p>
+                </div>
+
+                <form class="formulario metodos-pago">
+                    <fieldset>
+                        <legend>Procesar Pago</legend>
+                        <div class="campo">
+                            <label for="metodo">Método de Pago:</label>
+                            <select id="metodo" required>
+                                <option value="" disabled selected>-- Seleccione --</option>
+                                <option value="efectivo_usd">Efectivo (Divisas)</option>
+                                <option value="punto">Punto de Venta</option>
+                                <option value="pago_movil">Pago Móvil (Bs)</option>
+                            </select>
+                        </div>
+                        <div class="campo">
+                            <label for="monto">Monto Recibido:</label>
+                            <input type="number" id="monto" placeholder="Monto entregado por el cliente" step="0.01">
+                        </div>
+                        <div class="campo">
+                            <label for="vuelto">Vuelto a Entregar:</label>
+                            <input type="text" id="vuelto" value="$0.00" readonly style="background-color: #eee; font-weight: bold;">
+                        </div>
+                    </fieldset>
+                    
+                    <input type="submit" value="Confirmar Pago e Imprimir Factura" class="btn btn-pagar">
+                </form>
+            </section>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="contenedor contenido-footer">
+            <div class="footer-box">
+                <h3>Cafetería</h3>
+                <p>Sistema interno - Rol de Cajero</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

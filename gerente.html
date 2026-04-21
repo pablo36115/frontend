@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cafetería - Reportes Gerenciales</title>
+     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bona+Nova&family=Raleway:wght@700;900&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="build/css/app.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        /* Estilos del Submenú */
+        .sub-menu {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            background-color: #333;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+        }
+        .sub-menu a {
+            color: white;
+            text-decoration: none;
+            font-size: 1.4rem;
+            font-weight: bold;
+            padding: 0.5rem 1.5rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.3s;
+        }
+        .sub-menu a:hover {
+            background-color: #e9a84b;
+            color: #333;
+        }
+
+        /* Botón de Imprimir PDF */
+        .acciones-superiores {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 2rem;
+        }
+        .btn-imprimir {
+            background-color: #d9534f;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.6rem;
+            font-weight: bold;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0px 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn-imprimir:hover {
+            background-color: #c9302c;
+        }
+
+        /* Botón para volver al submenú */
+        .contenedor-volver {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 4rem; /* Mismo margen inferior que las tablas/gráficos */
+            margin-top: -2rem; /* Acerca el botón un poco al contenido de arriba */
+        }
+        .btn-volver {
+            background-color: #e9a84b;
+            color: #333;
+            text-decoration: none;
+            padding: 0.8rem 1.8rem;
+            font-size: 1.4rem;
+            font-weight: bold;
+            border-radius: 2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0px 2px 5px rgba(0,0,0,0.1);
+        }
+        .btn-volver:hover {
+            background-color: #333;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* Estilos del Filtro */
+        .filtros-contenedor {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-bottom: 2rem;
+            gap: 1rem;
+        }
+        .filtros-contenedor label {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: #333;
+        }
+        .filtros-contenedor select {
+            padding: 0.8rem 1.5rem;
+            font-size: 1.4rem;
+            border: 2px solid #ccc;
+            border-radius: 0.5rem;
+            background-color: white;
+            cursor: pointer;
+            outline: none;
+        }
+        .filtros-contenedor select:focus {
+            border-color: #e9a84b;
+        }
+
+        /* Estilos rápidos para las tarjetas del Dashboard */
+        .dashboard-resumen {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+        .tarjeta-reporte {
+            background-color: #f8f8f8;
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            border-radius: 1rem;
+            box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+        }
+        .tarjeta-reporte h3 {
+            margin: 0 0 1rem 0;
+            font-size: 1.8rem;
+            color: #333;
+        }
+        .tarjeta-reporte p {
+            font-size: 3rem;
+            font-weight: 900;
+            color: #e9a84b;
+            margin: 0;
+        }
+        .alerta {
+            color: #d9534f !important;
+        }
+        
+        /* Contenedor para los gráficos */
+        .graficos-encabezado {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .graficos-contenedor {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+        .grafico-card {
+            background-color: #f8f8f8;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        .grafico-card h3 {
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+            color: #333;
+            text-align: center;
+        }
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 250px;
+        }
+
+        .tabla-reportes {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 4rem;
+            text-align: left;
+        }
+        .tabla-reportes th {
+            background-color: #333;
+            color: white;
+            padding: 1.5rem;
+            font-size: 1.8rem;
+        }
+        .tabla-reportes td {
+            padding: 1.5rem;
+            border-bottom: 1px solid #ccc;
+            font-size: 1.6rem;
+        }
+        .tabla-reportes tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .badge-alerta {
+            background-color: #d9534f;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        .badge-ok {
+            background-color: #5cb85c;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <header class="header header-inicio" id="area-header">
+        <div class="contenido-header contenedor">
+            <div class="barra">
+                <div class="logo">
+                    <img src="build/img/logo.svg" alt="logo cafeteria">
+                </div>
+
+                <nav class="nav-principal">
+                    <a href="index.html">Inicio</a>
+                    <a href="nosotros.html">Nosotros</a>
+                    <a href="menu.html">Menú</a>
+                    <a href="galeria.html">Galería</a>
+                    <a href="contacto.html">Contacto</a>
+                    <a href="mesero.html">Mesero</a>
+                    <a href="cajero.html">Cajero</a>
+                    <a class="activo" href="gerente.html">Gerente</a>
+                    <a href="administrador.html">Administrador</a>
+                </nav>
+            </div>
+
+            <div class="texto-header">
+                <h1>Disfruta una deliciosa taza de café</h1>
+            </div>
+        </div>
+     </header>
+
+    <main class="contenedor contenido-principal" id="area-reporte">
+        
+        <div class="acciones-superiores no-imprimir">
+            <button id="btnImprimirPdf" class="btn-imprimir">
+                📄 Exportar a PDF
+            </button>
+        </div>
+
+        <nav class="sub-menu no-imprimir" id="menu-rapido">
+            <a href="#ventas">Resumen Operativo</a>
+            <a href="#metricas">Métricas Gráficas</a>
+            <a href="#inventario">Estado Crítico de Inventario</a>
+        </nav>
+
+        <h2 id="ventas">Resumen Operativo</h2>
+        
+        <div class="dashboard-resumen">
+            <div class="tarjeta-reporte">
+                <h3>Ventas Totales</h3>
+                <p id="kpi-ventas">$1,450.00</p>
+            </div>
+            <div class="tarjeta-reporte">
+                <h3>Comandas Atendidas</h3>
+                <p id="kpi-comandas">42</p>
+            </div>
+            <div class="tarjeta-reporte">
+                <h3>Ticket Promedio</h3>
+                <p id="kpi-ticket">$34.52</p>
+            </div>
+            <div class="tarjeta-reporte">
+                <h3>Mesa más Ocupada</h3>
+                <p>Mesa 2</p>
+            </div>
+            <div class="tarjeta-reporte">
+                <h3>Alertas Inventario</h3>
+                <p class="alerta">2 Ítems</p>
+            </div>
+        </div>
+
+        <div class="contenedor-volver no-imprimir">
+            <a href="#menu-rapido" class="btn-volver">↑ Volver al Menú</a>
+        </div>
+        <div class="graficos-encabezado" id="metricas">
+            <h2>Métricas y Análisis Gráfico</h2>
+            <div class="filtros-contenedor no-imprimir">
+                <label for="filtroFecha">Periodo:</label>
+                <select id="filtroFecha">
+                    <option value="diario">Diario</option>
+                    <option value="semanal" selected>Semanal</option>
+                    <option value="mensual">Mensual</option>
+                    <option value="anual">Anual</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="graficos-contenedor">
+            <div class="grafico-card">
+                <h3>Flujo de Clientes</h3>
+                <div class="canvas-container">
+                    <canvas id="graficoVentasHora"></canvas>
+                </div>
+            </div>
+            <div class="grafico-card">
+                <h3 id="tituloIngresos">Ingresos de los Últimos 7 Días</h3>
+                <div class="canvas-container">
+                    <canvas id="graficoIngresos"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="graficos-contenedor">
+            <div class="grafico-card">
+                <h3>Top Platillos Vendidos</h3>
+                <div class="canvas-container">
+                    <canvas id="graficoPlatillos"></canvas>
+                </div>
+            </div>
+            <div class="grafico-card">
+                <h3>Distribución por Categoría</h3>
+                <div class="canvas-container">
+                    <canvas id="graficoCategorias"></canvas>
+                </div>
+            </div>
+            <div class="grafico-card">
+                <h3>Comandas por Mesero</h3>
+                <div class="canvas-container">
+                    <canvas id="graficoMeseros"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="contenedor-volver no-imprimir">
+            <a href="#menu-rapido" class="btn-volver">↑ Volver al Menú</a>
+        </div>
+        <h2 id="platillos">Platillos Más Vendidos (Detalle)</h2>
+        <table class="tabla-reportes">
+            <thead>
+                <tr>
+                    <th>Posición</th>
+                    <th>Nombre del Platillo</th>
+                    <th>Categoría</th>
+                    <th>Cantidad Vendida</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>Capuchino Vainilla</td>
+                    <td>Bebidas Calientes</td>
+                    <td>28 unidades</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>Pastel de Chocolate</td>
+                    <td>Postres</td>
+                    <td>15 unidades</td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td>Café Americano</td>
+                    <td>Bebidas Calientes</td>
+                    <td>12 unidades</td>
+                </tr>
+            </tbody>
+        </table>
+
+
+        <h2 id="inventario">Estado Crítico de Inventario</h2>
+        <table class="tabla-reportes">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Stock Actual</th>
+                    <th>Mínimo Requerido</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Leche Deslactosada</td>
+                    <td>2 Litros</td>
+                    <td>10 Litros</td>
+                    <td><span class="badge-alerta">Comprar Hoy</span></td>
+                </tr>
+                <tr>
+                    <td>Granos de Café (Espresso)</td>
+                    <td>1.5 Kg</td>
+                    <td>3 Kg</td>
+                    <td><span class="badge-alerta">Stock Bajo</span></td>
+                </tr>
+                <tr>
+                    <td>Jarabe de Vainilla</td>
+                    <td>4 Botellas</td>
+                    <td>3 Botellas</td>
+                    <td><span class="badge-ok">Adecuado</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="contenedor-volver no-imprimir">
+            <a href="#menu-rapido" class="btn-volver">↑ Volver al Menú</a>
+        </div>
+        </main>
+
+    <footer class="footer no-imprimir">
+        <div class="contenedor contenido-footer">
+            <div class="footer-box">
+                <h3>Cafetería</h3>
+                <p>Sistema interno - Rol de Gerente</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // Opciones comunes
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                }
+            };
+
+            // Base de datos simulada para los filtros
+            const mockData = {
+                diario: {
+                    tituloIngresos: "Ingresos del Día",
+                    kpis: { ventas: "$1,450.00", comandas: "42", ticket: "$34.52" },
+                    ventasHora: [5, 12, 8, 15, 22, 35, 18],
+                    ingresosLabels: ['Ayer', 'Hoy'],
+                    ingresosData: [1200, 1450],
+                    platillos: [28, 15, 12],
+                    categorias: [40, 12, 15, 18],
+                    meseros: [18, 15, 9]
+                },
+                semanal: {
+                    tituloIngresos: "Ingresos de los Últimos 7 Días",
+                    kpis: { ventas: "$9,260.00", comandas: "295", ticket: "$31.38" },
+                    ventasHora: [45, 80, 60, 95, 140, 210, 130],
+                    ingresosLabels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+                    ingresosData: [850, 920, 890, 1100, 1450, 1800, 1650],
+                    platillos: [180, 95, 82],
+                    categorias: [250, 85, 110, 130],
+                    meseros: [110, 95, 90]
+                },
+                mensual: {
+                    tituloIngresos: "Ingresos del Mes",
+                    kpis: { ventas: "$38,500.00", comandas: "1,250", ticket: "$30.80" },
+                    ventasHora: [180, 320, 250, 400, 580, 850, 520],
+                    ingresosLabels: ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4'],
+                    ingresosData: [8500, 9200, 10500, 10300],
+                    platillos: [750, 420, 380],
+                    categorias: [1050, 350, 480, 550],
+                    meseros: [480, 420, 350]
+                },
+                anual: {
+                    tituloIngresos: "Ingresos del Año",
+                    kpis: { ventas: "$450,200.00", comandas: "14,800", ticket: "$30.41" },
+                    ventasHora: [2100, 3800, 3000, 4800, 6900, 10200, 6200],
+                    ingresosLabels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+                    ingresosData: [32000, 35000, 38000, 36000, 41000, 45000, 42000, 39000, 34000, 38000, 45000, 50000],
+                    platillos: [8500, 5100, 4600],
+                    categorias: [12000, 4200, 5800, 6500],
+                    meseros: [5500, 4800, 4500]
+                }
+            };
+
+            // 1. Gráfico de Ventas por Hora
+            const ctxHora = document.getElementById('graficoVentasHora').getContext('2d');
+            let chartHora = new Chart(ctxHora, {
+                type: 'line',
+                data: {
+                    labels: ['8:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00'],
+                    datasets: [{
+                        label: 'Comandas',
+                        data: mockData.semanal.ventasHora,
+                        borderColor: '#e9a84b',
+                        backgroundColor: 'rgba(233, 168, 75, 0.2)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: commonOptions
+            });
+
+            // 2. Gráfico de Ingresos
+            const ctxIngresos = document.getElementById('graficoIngresos').getContext('2d');
+            let chartIngresos = new Chart(ctxIngresos, {
+                type: 'bar',
+                data: {
+                    labels: mockData.semanal.ingresosLabels,
+                    datasets: [{
+                        label: 'Ingresos ($)',
+                        data: mockData.semanal.ingresosData,
+                        backgroundColor: '#333333',
+                        borderRadius: 4
+                    }]
+                },
+                options: commonOptions
+            });
+
+            // 3. Gráfico de Platillos
+            const ctxPlatillos = document.getElementById('graficoPlatillos').getContext('2d');
+            let chartPlatillos = new Chart(ctxPlatillos, {
+                type: 'bar',
+                data: {
+                    labels: ['Capuchino', 'Pastel Chocolate', 'Americano'],
+                    datasets: [{
+                        label: 'Unidades Vendidas',
+                        data: mockData.semanal.platillos,
+                        backgroundColor: ['#e9a84b', '#8b5a2b', '#333333'],
+                        borderRadius: 4
+                    }]
+                },
+                options: commonOptions
+            });
+
+            // 4. Gráfico de Categorías (Dona)
+            const ctxCategorias = document.getElementById('graficoCategorias').getContext('2d');
+            let chartCategorias = new Chart(ctxCategorias, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Bebidas Calientes', 'Bebidas Frías', 'Postres', 'Alimentos Salados'],
+                    datasets: [{
+                        data: mockData.semanal.categorias, 
+                        backgroundColor: ['#e9a84b', '#f4d03f', '#8b5a2b', '#333333'],
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'right' } }
+                }
+            });
+
+            // 5. Gráfico de Rendimiento por Mesero
+            const ctxMeseros = document.getElementById('graficoMeseros').getContext('2d');
+            let chartMeseros = new Chart(ctxMeseros, {
+                type: 'bar',
+                data: {
+                    labels: ['Carlos', 'Ana', 'Luis'],
+                    datasets: [{
+                        label: 'Comandas Atendidas',
+                        data: mockData.semanal.meseros,
+                        backgroundColor: '#8b5a2b',
+                        borderRadius: 4
+                    }]
+                },
+                options: commonOptions
+            });
+
+            // Lógica del filtro de fecha
+            document.getElementById('filtroFecha').addEventListener('change', function(e) {
+                const periodo = e.target.value;
+                const datos = mockData[periodo];
+
+                // Actualizar KPIs
+                document.getElementById('kpi-ventas').textContent = datos.kpis.ventas;
+                document.getElementById('kpi-comandas').textContent = datos.kpis.comandas;
+                document.getElementById('kpi-ticket').textContent = datos.kpis.ticket;
+
+                // Actualizar Título del gráfico de ingresos
+                document.getElementById('tituloIngresos').textContent = datos.tituloIngresos;
+
+                // Actualizar datos de los gráficos
+                chartHora.data.datasets[0].data = datos.ventasHora;
+                chartHora.update();
+
+                chartIngresos.data.labels = datos.ingresosLabels;
+                chartIngresos.data.datasets[0].data = datos.ingresosData;
+                chartIngresos.update();
+
+                chartPlatillos.data.datasets[0].data = datos.platillos;
+                chartPlatillos.update();
+
+                chartCategorias.data.datasets[0].data = datos.categorias;
+                chartCategorias.update();
+
+                chartMeseros.data.datasets[0].data = datos.meseros;
+                chartMeseros.update();
+            });
+
+            // --- Lógica para Exportar a PDF ---
+            document.getElementById('btnImprimirPdf').addEventListener('click', function() {
+                // Seleccionamos todo el contenedor principal (<main>)
+                const elemento = document.getElementById('area-reporte');
+                
+                // Ocultamos elementos que no queremos que salgan en el PDF usando la clase .no-imprimir
+                const elementosNoImprimir = document.querySelectorAll('.no-imprimir');
+                elementosNoImprimir.forEach(el => el.style.display = 'none');
+
+                // Configuración de html2pdf
+                const opciones = {
+                    margin:       10, // Margen en mm
+                    filename:     'reporte_gerencial_cafeteria.pdf',
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 2, useCORS: true }, 
+                    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+
+                // Generar y guardar el PDF
+                html2pdf().set(opciones).from(elemento).save().then(() => {
+                    // Restaurar la visualización de los elementos ocultos después de generar el PDF
+                    elementosNoImprimir.forEach(el => el.style.display = '');
+                });
+            });
+
+            // Animación suave para los enlaces del submenú y los botones de volver
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>

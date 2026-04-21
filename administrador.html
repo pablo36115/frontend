@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cafetería - Gestión de Inventario</title>
+    <link rel="stylesheet" href="build/css/app.css">
+    <style>
+       
+        .grid-formulario-inventario {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            align-items: center;
+        }
+        .tabla-inventario {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2rem;
+            margin-bottom: 4rem;
+            text-align: left;
+        }
+        .tabla-inventario th {
+            background-color: #333;
+            color: white;
+            padding: 1.5rem;
+            font-size: 1.8rem;
+        }
+        .tabla-inventario td {
+            padding: 1.5rem;
+            border-bottom: 1px solid #ccc;
+            font-size: 1.6rem;
+        }
+        .tabla-inventario tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .estado-critico {
+            color: #d9534f;
+            font-weight: bold;
+        }
+        .estado-optimo {
+            color: #5cb85c;
+            font-weight: bold;
+        }
+        .btn-pequeno {
+            padding: 0.5rem 1rem;
+            font-size: 1.4rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            margin-right: 0.5rem;
+            color: white;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        .btn-editar {
+            background-color: #e9a84b; /* Color principal de tu web */
+        }
+        .btn-eliminar {
+            background-color: #d9534f;
+        }
+    </style>
+</head>
+<body>
+    <header class="header header-inicio">
+        <div class="contenido-header contenedor">
+            <div class="barra">
+                <div class="logo">
+                    <img src="build/img/logo.svg" alt="logo cafeteria">
+                </div>
+
+                <nav class="nav-principal">
+                    <a href="index.html">Inicio</a>
+                    <a href="nosotros.html">Nosotros</a>
+                 <!--   <a href="proceso.html">Proceso</a>-->
+                    <a href="menu.html">Menú</a>
+                    <a href="galeria.html">Galería</a>
+                    <a href="contacto.html">Contacto</a>
+                    <a href="mesero.html">Mesero</a>
+                    <a href="cajero.html">Cajero</a>
+                    <a href="gerente.html">Gerente</a>
+                    <a class="activo" href="administrador.html">Administrador</a>
+                
+
+                </nav>
+            </div>
+
+            <div class="texto-header">
+                <h1>Disfruta una deliciosa taza de café</h1>
+            </div>
+        </div>
+     </header>
+
+    <main class="contenedor contenido-principal">
+        <h2>Registrar Nuevo Insumo / Entrada</h2>
+        
+        <form class="formulario">
+            <fieldset>
+                <legend>Datos del Producto</legend>
+                <div class="grid-formulario-inventario">
+                    <div class="campo">
+                        <label for="nombre">Nombre del Insumo:</label>
+                        <input type="text" id="nombre" placeholder="Ej. Café en grano (Tueste Oscuro)" required>
+                    </div>
+                    <div class="campo">
+                        <label for="categoria">Categoría:</label>
+                        <select id="categoria" required>
+                            <option value="" disabled selected>-- Seleccione --</option>
+                            <option value="granos">Granos y Polvos</option>
+                            <option value="lacteos">Lácteos</option>
+                            <option value="reposteria">Repostería</option>
+                            <option value="empaques">Empaques (Vasos, Servilletas)</option>
+                        </select>
+                    </div>
+                    <div class="campo">
+                        <label for="cantidad">Cantidad:</label>
+                        <input type="number" id="cantidad" placeholder="Ej. 10" min="0" required>
+                    </div>
+                    <div class="campo">
+                        <label for="unidad">Unidad de Medida:</label>
+                        <select id="unidad" required>
+                            <option value="kg">Kilogramos (Kg)</option>
+                            <option value="l">Litros (L)</option>
+                            <option value="unidades">Unidades (Cajas/Paquetes)</option>
+                        </select>
+                    </div>
+                </div>
+            </fieldset>
+
+            <div class="alinear-derecha">
+                <input type="submit" value="Añadir a Inventario" class="btn">
+            </div>
+        </form>
+
+        <h2>Inventario Actual</h2>
+        <table class="tabla-inventario">
+            <thead>
+                <tr>
+                    <th>Insumo</th>
+                    <th>Categoría</th>
+                    <th>Stock Actual</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Café en Grano (Tueste Medio)</td>
+                    <td>Granos y Polvos</td>
+                    <td>15 Kg</td>
+                    <td class="estado-optimo">Óptimo</td>
+                    <td>
+                        <button class="btn-pequeno btn-editar">Editar</button>
+                        <button class="btn-pequeno btn-eliminar">Borrar</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Leche Deslactosada</td>
+                    <td>Lácteos</td>
+                    <td>2 Litros</td>
+                    <td class="estado-critico">Stock Crítico</td>
+                    <td>
+                        <button class="btn-pequeno btn-editar">Editar</button>
+                        <button class="btn-pequeno btn-eliminar">Borrar</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Vasos Desechables (Medianos)</td>
+                    <td>Empaques</td>
+                    <td>250 Unidades</td>
+                    <td class="estado-optimo">Óptimo</td>
+                    <td>
+                        <button class="btn-pequeno btn-editar">Editar</button>
+                        <button class="btn-pequeno btn-eliminar">Borrar</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Azúcar Refinada</td>
+                    <td>Granos y Polvos</td>
+                    <td>0.5 Kg</td>
+                    <td class="estado-critico">Stock Crítico</td>
+                    <td>
+                        <button class="btn-pequeno btn-editar">Editar</button>
+                        <button class="btn-pequeno btn-eliminar">Borrar</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </main>
+
+    <footer class="footer">
+        <div class="contenedor contenido-footer">
+            <div class="footer-box">
+                <h3>Cafetería</h3>
+                <p>Sistema interno - Rol de Administrador</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

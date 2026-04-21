@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cafetería - Tomar Comanda</title>
+    <link rel="stylesheet" href="build/css/app.css">
+    <style>
+        /* Estilos rápidos específicos para esta vista (puedes pasarlos a tus archivos .scss luego) */
+        .grid-platillos {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .platillo-item {
+            background-color: #f8f8f8;
+            padding: 1rem;
+            border-radius: 1rem;
+            text-align: center;
+        }
+        .platillo-item label {
+            display: block;
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+        .platillo-item input {
+            width: 80px;
+            text-align: center;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <header class="header header-inicio">
+        <div class="contenido-header contenedor">
+            <div class="barra">
+                <div class="logo">
+                    <img src="build/img/logo.svg" alt="logo cafeteria">
+                </div>
+
+                <nav class="nav-principal">
+                    <a href="index.html">Inicio</a>
+                    <a href="nosotros.html">Nosotros</a>
+                   <!-- <a href="proceso.html">Proceso</a>-->
+                    <a href="menu.html">Menú</a>
+                    <a href="galeria.html">Galería</a>
+                    <a href="contacto.html">Contacto</a>
+                    <a class="activo" href="mesero.html">Mesero</a>
+                    <a href="cajero.html">Cajero</a>
+                    <a href="gerente.html">Gerente</a>
+                    <a href="administrador.html">Administrador</a>
+                
+
+                </nav>
+            </div>
+
+            <div class="texto-header">
+                <h1>Disfruta una deliciosa taza de café</h1>
+            </div>
+        </div>
+    </header>
+
+    <main class="contenedor contenido-principal">
+        <h2>Nueva Orden</h2>
+        <form class="formulario">
+            <fieldset>
+                <legend>Datos de la Mesa</legend>
+                <div class="campo">
+                    <label for="mesa">Seleccionar Mesa:</label>
+                    <select id="mesa" name="mesa" required>
+                        <option value="" disabled selected>-- Seleccione --</option>
+                        <option value="1">Mesa 1 (Terraza)</option>
+                        <option value="2">Mesa 2 (Interior)</option>
+                        <option value="3">Mesa 3 (Ventana)</option>
+                    </select>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Bebidas y Platillos</legend>
+                <div class="grid-platillos">
+                    <div class="platillo-item">
+                        <label>Café Americano</label>
+                        <input type="number" min="0" value="0" class="campo">
+                    </div>
+                    <div class="platillo-item">
+                        <label>Capuchino</label>
+                        <input type="number" min="0" value="0" class="campo">
+                    </div>
+                    <div class="platillo-item">
+                        <label>Pastel de Chocolate</label>
+                        <input type="number" min="0" value="0" class="campo">
+                    </div>
+                    <div class="platillo-item">
+                        <label>Té de Manzanilla</label>
+                        <input type="number" min="0" value="0" class="campo">
+                    </div>
+                </div>
+
+                <div class="campo">
+                    <label for="notas">Notas Especiales para la Cocina:</label>
+                    <textarea id="notas" placeholder="Ej: El café americano sin azúcar, leche deslactosada..."></textarea>
+                </div>
+            </fieldset>
+
+            <div class="alinear-derecha">
+                <input type="submit" value="Enviar Comanda a Cocina" class="btn">
+            </div>
+        </form>
+    </main>
+
+    <footer class="footer">
+        <div class="contenedor contenido-footer">
+            <div class="footer-box">
+                <h3>Cafetería</h3>
+                <p>Sistema interno - Rol de Mesero</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
