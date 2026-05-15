@@ -6,7 +6,6 @@
     <title>Cafetería - Módulo de Caja y Cobro</title>
     <link rel="stylesheet" href="build/css/app.css">
     <style>
-        /* Estilos específicos para la vista de Caja (Recuerda moverlos a tu SCSS luego) */
         .grid-caja {
             display: grid;
             grid-template-columns: 1fr 2fr;
@@ -18,7 +17,6 @@
                 grid-template-columns: 1fr;
             }
         }
-        /* Panel Izquierdo: Lista de Comandas */
         .lista-comandas {
             background-color: #f8f8f8;
             padding: 2rem;
@@ -35,7 +33,7 @@
             transition: all 0.3s ease;
         }
         .comanda-pendiente:hover, .comanda-pendiente.activa {
-            border-color: #e9a84b; /* Color principal */
+            border-color: #e9a84b;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
         .comanda-pendiente h4 {
@@ -47,12 +45,10 @@
             color: #666;
             font-size: 1.4rem;
         }
-        
-        /* Panel Derecho: Ticket de Cobro */
         .ticket-cobro {
             background-color: #fff;
             padding: 3rem;
-            border: 2px dashed #ccc; /* Efecto de factura */
+            border: 2px dashed #ccc;
             border-radius: 1rem;
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
@@ -117,7 +113,6 @@
                 <nav class="nav-principal">
                     <a class="activo" href="index.html">Inicio</a>
                     <a href="nosotros.html">Nosotros</a>
-                   <!-- <a href="proceso.html">Proceso</a>-->
                     <a href="menu.html">Menú</a>
                     <a href="galeria.html">Galería</a>
                     <a href="contacto.html">Contacto</a>
@@ -125,8 +120,6 @@
                     <a href="cajero.html">Cajero</a>
                     <a href="gerente.html">Gerente</a>
                     <a href="administrador.html">Administrador</a>
-                
-
                 </nav>
             </div>
 
@@ -224,17 +217,16 @@
         </div>
     </footer>
 
-    <script>
-        const API_BASE = 'http://localhost:3800/api';
+    <script type="module">
+        import { ordenesService } from './src/services/ordenes.service.js';
+        import { contabilidadService } from './src/services/contabilidad.service.js';
+
         let ordenSeleccionada = null;
         let splitPagos = [{ metodo: 'efectivo', monto: 0 }];
 
         async function cargarOrdenes() {
             try {
-                const res = await fetch(`${API_BASE}/ordenes`);
-                const json = await res.json();
-                const ordenes = json.data || [];
-                
+                const ordenes = await ordenesService.obtenerPendientes();
                 const container = document.getElementById('lista-ordenes');
                 
                 if (ordenes.length === 0) {
@@ -243,27 +235,25 @@
                 }
                 
                 container.innerHTML = ordenes.map(orden => `
-                    <div class="comanda-pendiente" onclick="seleccionarOrden(${orden.id})" id="orden-${orden.id}">
+                    <div class="comanda-pendiente" id="orden-${orden.id}">
                         <h4>${orden.mesa.nombre}</h4>
                         <p>Atendido por: ${orden.usuario.nombre}</p>
                         <p><strong>Total: $${orden.total.toFixed(2)}</strong></p>
                     </div>
                 `).join('');
+
+                document.querySelectorAll('.comanda-pendiente').forEach(el => {
+                    el.addEventListener('click', () => seleccionarOrden(parseInt(el.id.replace('orden-', ''))));
+                });
             } catch (error) {
                 console.error('Error cargando órdenes:', error);
             }
         }
 
-        function seleccionarOrden(id) {
-            document.querySelectorAll('.comanda-pendiente').forEach(el => el.classList.remove('activa'));
-            document.getElementById(`orden-${id}`).classList.add('activa');
-        }
-
         async function seleccionarOrden(id) {
             try {
-                const res = await fetch(`${API_BASE}/ordenes`);
-                const json = await res.json();
-                const orden = (json.data || []).find(o => o.id === id);
+                const ordenes = await ordenesService.obtenerTodos();
+                const orden = ordenes.find(o => o.id === id);
                 
                 if (!orden) return;
                 
@@ -335,10 +325,10 @@
             });
         }
 
-        function removerSplit(index) {
+        window.removerSplit = function(index) {
             splitPagos.splice(index, 1);
             actualizarSplitContainer();
-        }
+        };
 
         document.getElementById('usar-split').addEventListener('change', function() {
             if (this.checked) {
@@ -405,24 +395,15 @@
             }
             
             try {
-                const res = await fetch(`${API_BASE}/ordenes/${ordenSeleccionada.id}/pagar`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                
-                if (res.ok) {
-                    alert('Pago procesado exitosamente');
-                    ordenSeleccionada = null;
-                    document.getElementById('ticket-cobro').style.display = 'none';
-                    document.getElementById('sin-orden').style.display = 'block';
-                    cargarOrdenes();
-                } else {
-                    alert('Error al procesar pago');
-                }
+                await ordenesService.pagar(ordenSeleccionada.id, payload);
+                alert('Pago procesado exitosamente');
+                ordenSeleccionada = null;
+                document.getElementById('ticket-cobro').style.display = 'none';
+                document.getElementById('sin-orden').style.display = 'block';
+                cargarOrdenes();
             } catch (error) {
                 console.error('Error:', error);
-                alert('Error al procesar pago');
+                alert('Error al procesar pago: ' + error.message);
             }
         });
 

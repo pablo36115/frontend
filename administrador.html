@@ -54,7 +54,7 @@
             font-weight: bold;
         }
         .btn-editar {
-            background-color: #e9a84b; /* Color principal de tu web */
+            background-color: #e9a84b;
         }
         .btn-eliminar {
             background-color: #d9534f;
@@ -72,7 +72,6 @@
                 <nav class="nav-principal">
                     <a href="index.html">Inicio</a>
                     <a href="nosotros.html">Nosotros</a>
-                 <!--   <a href="proceso.html">Proceso</a>-->
                     <a href="menu.html">Menú</a>
                     <a href="galeria.html">Galería</a>
                     <a href="contacto.html">Contacto</a>
@@ -80,8 +79,6 @@
                     <a href="cajero.html">Cajero</a>
                     <a href="gerente.html">Gerente</a>
                     <a class="activo" href="administrador.html">Administrador</a>
-                
-
                 </nav>
             </div>
 
@@ -154,15 +151,16 @@
         </div>
     </footer>
 
-    <script>
-        const API_BASE = 'http://localhost:3800/api';
+    <script type="module">
+        import { productosService } from './src/services/productos.service.js';
+        import { categoriasService } from './src/services/categorias.service.js';
+        import { mostrarMensaje } from './src/utils/helpers.js';
+
         let productoEditando = null;
 
         async function cargarCategorias() {
             try {
-                const res = await fetch(`${API_BASE}/categorias`);
-                const json = await res.json();
-                const categorias = json.data || [];
+                const categorias = await categoriasService.obtenerTodos();
                 const select = document.getElementById('categoria');
                 select.innerHTML = '<option value="" disabled selected>-- Seleccione --</option>' +
                     categorias.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
@@ -173,9 +171,7 @@
 
         async function cargarProductos() {
             try {
-                const res = await fetch(`${API_BASE}/productos`);
-                const json = await res.json();
-                const productos = json.data || [];
+                const productos = await productosService.obtenerTodos();
                 const tbody = document.getElementById('tabla-productos');
                 
                 if (productos.length === 0) {
@@ -191,11 +187,25 @@
                         <td>${p.cantidad}</td>
                         <td class="${p.estado ? 'estado-optimo' : 'estado-critico'}">${p.estado ? 'Activo' : 'Inactivo'}</td>
                         <td>
-                            <button class="btn-pequeno btn-editar" onclick="editarProducto(${p.id}, '${p.nombre}', ${p.precio}, ${p.cantidad}, ${p.categoria_id})">Editar</button>
-                            <button class="btn-pequeno btn-eliminar" onclick="eliminarProducto(${p.id})">Borrar</button>
+                            <button class="btn-pequeno btn-editar" data-id="${p.id}" data-nombre="${p.nombre}" data-precio="${p.precio}" data-cantidad="${p.cantidad}" data-categoria="${p.categoria_id}">Editar</button>
+                            <button class="btn-pequeno btn-eliminar" data-id="${p.id}">Borrar</button>
                         </td>
                     </tr>
                 `).join('');
+
+                document.querySelectorAll('.btn-editar').forEach(btn => {
+                    btn.addEventListener('click', () => editarProducto(
+                        parseInt(btn.dataset.id),
+                        btn.dataset.nombre,
+                        parseFloat(btn.dataset.precio),
+                        parseInt(btn.dataset.cantidad),
+                        parseInt(btn.dataset.categoria)
+                    ));
+                });
+
+                document.querySelectorAll('.btn-eliminar').forEach(btn => {
+                    btn.addEventListener('click', () => eliminarProducto(parseInt(btn.dataset.id)));
+                });
             } catch (error) {
                 console.error('Error cargando productos:', error);
             }
@@ -213,31 +223,17 @@
             };
 
             try {
-                let res;
                 if (productoEditando) {
-                    res = await fetch(`${API_BASE}/productos/${productoEditando}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
+                    await productosService.actualizar(productoEditando, payload);
+                    mostrarMensaje('mensaje-feedback', 'Producto actualizado', 'success');
                 } else {
-                    res = await fetch(`${API_BASE}/productos`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
+                    await productosService.crear(payload);
+                    mostrarMensaje('mensaje-feedback', 'Producto creado', 'success');
                 }
-
-                if (res.ok) {
-                    mostrarMensaje(productoEditando ? 'Producto actualizado' : 'Producto creado', 'success');
-                    resetForm();
-                    cargarProductos();
-                } else {
-                    const err = await res.json();
-                    mostrarMensaje(err.mensaje || 'Error', 'error');
-                }
+                resetForm();
+                cargarProductos();
             } catch (error) {
-                mostrarMensaje('Error de conexión', 'error');
+                mostrarMensaje('mensaje-feedback', error.message || 'Error', 'error');
             }
         });
 
@@ -254,15 +250,11 @@
         async function eliminarProducto(id) {
             if (!confirm('¿Eliminar este producto?')) return;
             try {
-                const res = await fetch(`${API_BASE}/productos/${id}`, { method: 'DELETE' });
-                if (res.ok) {
-                    mostrarMensaje('Producto eliminado', 'success');
-                    cargarProductos();
-                } else {
-                    mostrarMensaje('Error al eliminar', 'error');
-                }
+                await productosService.eliminar(id);
+                mostrarMensaje('mensaje-feedback', 'Producto eliminado', 'success');
+                cargarProductos();
             } catch (error) {
-                mostrarMensaje('Error de conexión', 'error');
+                mostrarMensaje('mensaje-feedback', 'Error al eliminar', 'error');
             }
         }
 
@@ -273,15 +265,6 @@
             document.getElementById('form-producto').reset();
             document.getElementById('btn-guardar').textContent = 'Añadir Producto';
             document.getElementById('btn-cancelar').style.display = 'none';
-        }
-
-        function mostrarMensaje(texto, tipo) {
-            const el = document.getElementById('mensaje-feedback');
-            el.textContent = texto;
-            el.style.display = 'block';
-            el.style.backgroundColor = tipo === 'success' ? '#d4edda' : '#f8d7da';
-            el.style.color = tipo === 'success' ? '#155724' : '#721c24';
-            setTimeout(() => { el.style.display = 'none'; }, 4000);
         }
 
         cargarCategorias();

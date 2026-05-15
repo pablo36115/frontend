@@ -6,28 +6,268 @@
     <title>Cafetería - Tomar Comanda</title>
     <link rel="stylesheet" href="build/css/app.css">
     <style>
-        /* Estilos rápidos específicos para esta vista (puedes pasarlos a tus archivos .scss luego) */
-        .grid-platillos {
+        .mesero-layout {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: 1fr 350px;
             gap: 2rem;
-            margin-bottom: 2rem;
+            margin-top: 2rem;
         }
-        .platillo-item {
-            background-color: #f8f8f8;
-            padding: 1rem;
+        @media (max-width: 900px) {
+            .mesero-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: #fff;
             border-radius: 1rem;
-            text-align: center;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
         }
-        .platillo-item label {
-            display: block;
-            margin-bottom: 1rem;
+        .panel h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #e9a84b;
+            padding-bottom: 0.5rem;
+        }
+
+        .busqueda-container {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .busqueda-container input {
+            flex: 1;
+            padding: 0.8rem 1rem;
+            border: 2px solid #ddd;
+            border-radius: 0.5rem;
+            font-size: 1.6rem;
+        }
+        .busqueda-container input:focus {
+            border-color: #e9a84b;
+            outline: none;
+        }
+
+        .categorias-tabs {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+        .categoria-tab {
+            padding: 0.6rem 1.2rem;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 2rem;
+            cursor: pointer;
+            font-size: 1.4rem;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .categoria-tab:hover {
+            background: #e0e0e0;
+        }
+        .categoria-tab.activo {
+            background: #e9a84b;
+            color: white;
+        }
+
+        .grid-productos {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1rem;
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+        .producto-card {
+            background: #fafafa;
+            border: 2px solid transparent;
+            border-radius: 0.8rem;
+            padding: 1.2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .producto-card:hover {
+            border-color: #e9a84b;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .producto-card .nombre {
+            font-weight: bold;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .producto-card .precio {
+            color: #e9a84b;
+            font-size: 1.8rem;
             font-weight: bold;
         }
-        .platillo-item input {
-            width: 80px;
+        .producto-card .badge-cantidad {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #d9534f;
+            color: white;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+        .producto-card .badge-cantidad:empty {
+            display: none;
+        }
+
+        .orden-resumen {
+            position: sticky;
+            top: 2rem;
+        }
+        .orden-items {
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 1rem 0;
+        }
+        .orden-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        .orden-item-info {
+            flex: 1;
+        }
+        .orden-item-nombre {
+            font-weight: bold;
+            font-size: 1.4rem;
+        }
+        .orden-item-precio {
+            color: #666;
+            font-size: 1.3rem;
+        }
+        .orden-item-controles {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-cantidad {
+            width: 28px;
+            height: 28px;
+            border: none;
+            border-radius: 50%;
+            background: #e9a84b;
+            color: white;
+            font-size: 1.6rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-cantidad:hover {
+            background: #d4922e;
+        }
+        .orden-item-cantidad {
+            font-weight: bold;
+            min-width: 24px;
             text-align: center;
-            margin: 0 auto;
+        }
+        .orden-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-top: 2px solid #333;
+            margin-top: 1rem;
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+        .orden-total .monto {
+            color: #e9a84b;
+        }
+
+        .ordenes-pendientes {
+            margin-top: 2rem;
+        }
+        .orden-pendiente-card {
+            background: #fff8e1;
+            border-left: 4px solid #e9a84b;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 0.5rem;
+        }
+        .orden-pendiente-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .orden-pendiente-mesa {
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+        .orden-pendiente-total {
+            color: #e9a84b;
+            font-weight: bold;
+        }
+        .orden-pendiente-detalles {
+            font-size: 1.3rem;
+            color: #666;
+        }
+        .btn-cancelar-orden {
+            background: #d9534f;
+            color: white;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 0.3rem;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        .campo-select {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 2px solid #ddd;
+            border-radius: 0.5rem;
+            font-size: 1.6rem;
+            margin-bottom: 1rem;
+        }
+        .campo-select:focus {
+            border-color: #e9a84b;
+            outline: none;
+        }
+
+        .btn-enviar {
+            width: 100%;
+            padding: 1.2rem;
+            background: #5cb85c;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1.6rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: background 0.2s;
+        }
+        .btn-enviar:hover {
+            background: #4cae4c;
+        }
+        .btn-enviar:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .sin-items {
+            text-align: center;
+            color: #999;
+            padding: 2rem;
+            font-style: italic;
         }
     </style>
 </head>
@@ -42,7 +282,6 @@
                 <nav class="nav-principal">
                     <a href="index.html">Inicio</a>
                     <a href="nosotros.html">Nosotros</a>
-                   <!-- <a href="proceso.html">Proceso</a>-->
                     <a href="menu.html">Menú</a>
                     <a href="galeria.html">Galería</a>
                     <a href="contacto.html">Contacto</a>
@@ -50,52 +289,74 @@
                     <a href="cajero.html">Cajero</a>
                     <a href="gerente.html">Gerente</a>
                     <a href="administrador.html">Administrador</a>
-                
-
                 </nav>
             </div>
 
             <div class="texto-header">
-                <h1>Disfruta una deliciosa taza de café</h1>
+                <h1>Tomar Comanda</h1>
             </div>
         </div>
     </header>
 
     <main class="contenedor contenido-principal">
-        <h2>Nueva Orden</h2>
-        <form class="formulario">
-            <fieldset>
-                <legend>Datos de la Mesa</legend>
-                <div class="campo">
-                    <label for="mesa">Seleccionar Mesa:</label>
-                    <select id="mesa" name="mesa" required>
-                        <option value="" disabled selected>-- Cargando mesas... --</option>
-                    </select>
+        <div class="mesero-layout">
+            <div class="panel panel-principal">
+                <h3>Productos</h3>
+                
+                <div class="busqueda-container">
+                    <input type="text" id="buscar-producto" placeholder="Buscar producto...">
                 </div>
-                <div class="campo">
-                    <label for="mesero">Mesero:</label>
-                    <select id="mesero" required>
-                        <option value="" disabled selected>-- Cargando meseros... --</option>
-                    </select>
-                </div>
-            </fieldset>
 
-            <fieldset>
-                <legend>Bebidas y Platillos</legend>
-                <div class="grid-platillos" id="lista-productos">
+                <div class="categorias-tabs" id="categorias-tabs">
+                    <button class="categoria-tab activo" data-categoria="todas">Todos</button>
+                </div>
+
+                <div class="grid-productos" id="lista-productos">
                     <p style="grid-column: 1 / -1; text-align: center; color: #666;">Cargando productos...</p>
                 </div>
 
-                <div class="campo">
-                    <label for="notas">Notas Especiales para la Cocina:</label>
-                    <textarea id="notas" placeholder="Ej: El café americano sin azúcar, leche deslactosada..."></textarea>
+                <div class="ordenes-pendientes" id="ordenes-pendientes">
+                    <h3>Órdenes Pendientes</h3>
+                    <div id="lista-ordenes-pendientes">
+                        <p style="color: #999;">No hay órdenes pendientes</p>
+                    </div>
                 </div>
-            </fieldset>
-
-            <div class="alinear-derecha">
-                <button type="button" id="btn-enviar" class="btn">Enviar Comanda a Cocina</button>
             </div>
-        </form>
+
+            <div class="panel orden-resumen">
+                <h3>Nueva Orden</h3>
+                
+                <div class="campo">
+                    <label for="mesa">Mesa:</label>
+                    <select id="mesa" class="campo-select" required>
+                        <option value="" disabled selected>-- Seleccione --</option>
+                    </select>
+                </div>
+                
+                <div class="campo">
+                    <label for="mesero">Mesero:</label>
+                    <select id="mesero" class="campo-select" required>
+                        <option value="" disabled selected>-- Seleccione --</option>
+                    </select>
+                </div>
+
+                <div class="campo">
+                    <label for="notas">Notas:</label>
+                    <textarea id="notas" class="campo-select" placeholder="Ej: Sin azúcar..." style="height: 80px; resize: vertical;"></textarea>
+                </div>
+
+                <div class="orden-items" id="orden-items">
+                    <p class="sin-items">Agregue productos a la orden</p>
+                </div>
+
+                <div class="orden-total">
+                    <span>Total:</span>
+                    <span class="monto" id="orden-total">$0.00</span>
+                </div>
+
+                <button type="button" id="btn-enviar" class="btn-enviar" disabled>Enviar Comanda</button>
+            </div>
+        </div>
 
         <div id="mensaje-feedback" style="margin-top: 2rem; padding: 1rem; border-radius: 0.5rem; display: none;"></div>
     </main>
@@ -109,58 +370,162 @@
         </div>
     </footer>
 
-    <script>
-        const API_BASE = 'http://localhost:3800/api';
+    <script type="module">
+        import { mesasService } from './src/services/mesas.service.js';
+        import { usuariosService } from './src/services/usuarios.service.js';
+        import { productosService } from './src/services/productos.service.js';
+        import { ordenesService } from './src/services/ordenes.service.js';
+        import { mostrarMensaje } from './src/utils/helpers.js';
 
-        async function cargarMesas() {
+        let productos = [];
+        let categorias = [];
+        let ordenActual = {};
+        let categoriaSeleccionada = 'todas';
+
+        async function cargarDatos() {
             try {
-                const res = await fetch(`${API_BASE}/mesas`);
-                const json = await res.json();
-                const mesas = json.data || [];
-                const select = document.getElementById('mesa');
-                select.innerHTML = '<option value="" disabled selected>-- Seleccione --</option>' +
-                    mesas.filter(m => m.estado).map(m => `<option value="${m.id}">${m.nombre} (Cap: ${m.capacidad})</option>`).join('');
+                const [mesas, meseros, prods] = await Promise.all([
+                    mesasService.obtenerDisponibles(),
+                    usuariosService.obtenerMeseros(),
+                    productosService.obtenerTodos()
+                ]);
+
+                const selectMesa = document.getElementById('mesa');
+                selectMesa.innerHTML = '<option value="" disabled selected>-- Seleccione --</option>' +
+                    mesas.map(m => `<option value="${m.id}">${m.nombre} (Cap: ${m.capacidad})</option>`).join('');
+
+                const selectMesero = document.getElementById('mesero');
+                selectMesero.innerHTML = '<option value="" disabled selected>-- Seleccione --</option>' +
+                    meseros.map(u => `<option value="${u.id}">${u.nombre}</option>`).join('');
+
+                productos = prods.filter(p => p.estado);
+                categorias = [...new Set(productos.map(p => p.categoria?.nombre).filter(Boolean))];
+
+                renderCategorias();
+                renderProductos();
+                cargarOrdenesPendientes();
             } catch (error) {
-                console.error('Error cargando mesas:', error);
+                console.error('Error cargando datos:', error);
             }
         }
 
-        async function cargarMeseros() {
-            try {
-                const res = await fetch(`${API_BASE}/usuarios`);
-                const json = await res.json();
-                const usuarios = json.data || [];
-                const select = document.getElementById('mesero');
-                select.innerHTML = '<option value="" disabled selected>-- Seleccione --</option>' +
-                    usuarios.map(u => `<option value="${u.id}">${u.nombre}</option>`).join('');
-            } catch (error) {
-                console.error('Error cargando usuarios:', error);
-            }
+        function renderCategorias() {
+            const container = document.getElementById('categorias-tabs');
+            container.innerHTML = '<button class="categoria-tab activo" data-categoria="todas">Todos</button>' +
+                categorias.map(c => `<button class="categoria-tab" data-categoria="${c}">${c}</button>`).join('');
+
+            container.querySelectorAll('.categoria-tab').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    container.querySelectorAll('.categoria-tab').forEach(b => b.classList.remove('activo'));
+                    btn.classList.add('activo');
+                    categoriaSeleccionada = btn.dataset.categoria;
+                    renderProductos();
+                });
+            });
         }
 
-        async function cargarProductos() {
-            try {
-                const res = await fetch(`${API_BASE}/productos`);
-                const json = await res.json();
-                const productos = json.data || [];
-                const container = document.getElementById('lista-productos');
-                
-                if (productos.length === 0) {
-                    container.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: #666;">No hay productos disponibles</p>';
-                    return;
-                }
+        function renderProductos(busqueda = '') {
+            const container = document.getElementById('lista-productos');
+            let filtrados = productos;
 
-                container.innerHTML = productos.filter(p => p.estado).map(p => `
-                    <div class="platillo-item" data-id="${p.id}" data-precio="${p.precio}">
-                        <label>${p.nombre}</label>
-                        <p style="color: #e9a84b; font-weight: bold; margin: 0.5rem 0;">$${p.precio.toFixed(2)}</p>
-                        <input type="number" min="0" value="0" class="campo cantidad-producto" data-id="${p.id}" data-precio="${p.precio}">
+            if (categoriaSeleccionada !== 'todas') {
+                filtrados = filtrados.filter(p => p.categoria?.nombre === categoriaSeleccionada);
+            }
+
+            if (busqueda) {
+                const busquedaLower = busqueda.toLowerCase();
+                filtrados = filtrados.filter(p => p.nombre.toLowerCase().includes(busquedaLower));
+            }
+
+            if (filtrados.length === 0) {
+                container.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: #666;">No se encontraron productos</p>';
+                return;
+            }
+
+            container.innerHTML = filtrados.map(p => {
+                const cantidad = ordenActual[p.id] || 0;
+                return `
+                    <div class="producto-card" data-id="${p.id}" data-precio="${p.precio}" data-nombre="${p.nombre}">
+                        <span class="badge-cantidad">${cantidad > 0 ? cantidad : ''}</span>
+                        <div class="nombre">${p.nombre}</div>
+                        <div class="precio">$${p.precio.toFixed(2)}</div>
                     </div>
-                `).join('');
-            } catch (error) {
-                console.error('Error cargando productos:', error);
-            }
+                `;
+            }).join('');
+
+            container.querySelectorAll('.producto-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const id = parseInt(card.dataset.id);
+                    agregarProducto(id, card.dataset.nombre, parseFloat(card.dataset.precio));
+                });
+            });
         }
+
+        function agregarProducto(id, nombre, precio) {
+            if (!ordenActual[id]) {
+                ordenActual[id] = { cantidad: 0, nombre, precio };
+            }
+            ordenActual[id].cantidad++;
+            renderProductos(document.getElementById('buscar-producto').value);
+            renderOrden();
+        }
+
+        function cambiarCantidad(id, delta) {
+            if (!ordenActual[id]) return;
+            ordenActual[id].cantidad += delta;
+            if (ordenActual[id].cantidad <= 0) {
+                delete ordenActual[id];
+            }
+            renderProductos(document.getElementById('buscar-producto').value);
+            renderOrden();
+        }
+
+        function renderOrden() {
+            const container = document.getElementById('orden-items');
+            const items = Object.entries(ordenActual);
+            const btnEnviar = document.getElementById('btn-enviar');
+            const totalEl = document.getElementById('orden-total');
+
+            if (items.length === 0) {
+                container.innerHTML = '<p class="sin-items">Agregue productos a la orden</p>';
+                totalEl.textContent = '$0.00';
+                btnEnviar.disabled = true;
+                return;
+            }
+
+            let total = 0;
+            container.innerHTML = items.map(([id, item]) => {
+                const subtotal = item.precio * item.cantidad;
+                total += subtotal;
+                return `
+                    <div class="orden-item">
+                        <div class="orden-item-info">
+                            <div class="orden-item-nombre">${item.nombre}</div>
+                            <div class="orden-item-precio">$${item.precio.toFixed(2)} c/u</div>
+                        </div>
+                        <div class="orden-item-controles">
+                            <button class="btn-cantidad btn-menos" data-id="${id}">-</button>
+                            <span class="orden-item-cantidad">${item.cantidad}</span>
+                            <button class="btn-cantidad btn-mas" data-id="${id}">+</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            totalEl.textContent = `$${total.toFixed(2)}`;
+            btnEnviar.disabled = false;
+
+            container.querySelectorAll('.btn-menos').forEach(btn => {
+                btn.addEventListener('click', () => cambiarCantidad(parseInt(btn.dataset.id), -1));
+            });
+            container.querySelectorAll('.btn-mas').forEach(btn => {
+                btn.addEventListener('click', () => cambiarCantidad(parseInt(btn.dataset.id), 1));
+            });
+        }
+
+        document.getElementById('buscar-producto').addEventListener('input', (e) => {
+            renderProductos(e.target.value);
+        });
 
         document.getElementById('btn-enviar').addEventListener('click', async function() {
             const mesaId = document.getElementById('mesa').value;
@@ -168,64 +533,75 @@
             const notas = document.getElementById('notas').value;
 
             if (!mesaId || !usuarioId) {
-                mostrarMensaje('Seleccione mesa y mesero', 'error');
+                mostrarMensaje('mensaje-feedback', 'Seleccione mesa y mesero', 'error');
                 return;
             }
 
-            const detalles = [];
-            document.querySelectorAll('.cantidad-producto').forEach(input => {
-                const cantidad = parseInt(input.value) || 0;
-                if (cantidad > 0) {
-                    detalles.push({
-                        producto_id: parseInt(input.dataset.id),
-                        cantidad: cantidad,
-                        precio: parseFloat(input.dataset.precio)
-                    });
-                }
-            });
-
-            if (detalles.length === 0) {
-                mostrarMensaje('Seleccione al menos un producto', 'error');
-                return;
-            }
+            const detalles = Object.entries(ordenActual).map(([id, item]) => ({
+                producto_id: parseInt(id),
+                cantidad: item.cantidad,
+                precio: item.precio
+            }));
 
             try {
-                const res = await fetch(`${API_BASE}/ordenes`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        mesa_id: parseInt(mesaId),
-                        usuario_id: parseInt(usuarioId),
-                        notas: notas || null,
-                        detalles: detalles
-                    })
+                await ordenesService.crear({
+                    mesa_id: parseInt(mesaId),
+                    usuario_id: parseInt(usuarioId),
+                    notas: notas || null,
+                    detalles
                 });
-
-                if (res.ok) {
-                    mostrarMensaje('Orden enviada exitosamente', 'success');
-                    document.getElementById('notas').value = '';
-                    document.querySelectorAll('.cantidad-producto').forEach(input => input.value = 0);
-                } else {
-                    const err = await res.json();
-                    mostrarMensaje(err.mensaje || 'Error al crear orden', 'error');
-                }
+                mostrarMensaje('mensaje-feedback', 'Orden enviada exitosamente', 'success');
+                ordenActual = {};
+                document.getElementById('notas').value = '';
+                renderOrden();
+                renderProductos();
+                cargarOrdenesPendientes();
             } catch (error) {
-                mostrarMensaje('Error de conexión', 'error');
+                mostrarMensaje('mensaje-feedback', error.message || 'Error al crear orden', 'error');
             }
         });
 
-        function mostrarMensaje(texto, tipo) {
-            const el = document.getElementById('mensaje-feedback');
-            el.textContent = texto;
-            el.style.display = 'block';
-            el.style.backgroundColor = tipo === 'success' ? '#d4edda' : '#f8d7da';
-            el.style.color = tipo === 'success' ? '#155724' : '#721c24';
-            setTimeout(() => { el.style.display = 'none'; }, 4000);
+        async function cargarOrdenesPendientes() {
+            try {
+                const ordenes = await ordenesService.obtenerPendientes();
+                const container = document.getElementById('lista-ordenes-pendientes');
+
+                if (ordenes.length === 0) {
+                    container.innerHTML = '<p style="color: #999;">No hay órdenes pendientes</p>';
+                    return;
+                }
+
+                container.innerHTML = ordenes.map(o => `
+                    <div class="orden-pendiente-card">
+                        <div class="orden-pendiente-header">
+                            <span class="orden-pendiente-mesa">${o.mesa?.nombre || 'Mesa #' + o.mesa_id}</span>
+                            <span class="orden-pendiente-total">$${o.total.toFixed(2)}</span>
+                        </div>
+                        <div class="orden-pendiente-detalles">
+                            ${o.detalles?.map(d => `${d.cantidad}x ${d.producto?.nombre || 'Producto'}`).join(', ')}
+                        </div>
+                        <button class="btn-cancelar-orden" data-id="${o.id}">Cancelar</button>
+                    </div>
+                `).join('');
+
+                container.querySelectorAll('.btn-cancelar-orden').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        if (!confirm('¿Cancelar esta orden?')) return;
+                        try {
+                            await ordenesService.eliminar(parseInt(btn.dataset.id));
+                            mostrarMensaje('mensaje-feedback', 'Orden cancelada', 'success');
+                            cargarOrdenesPendientes();
+                        } catch (error) {
+                            mostrarMensaje('mensaje-feedback', 'Error al cancelar', 'error');
+                        }
+                    });
+                });
+            } catch (error) {
+                console.error('Error cargando órdenes:', error);
+            }
         }
 
-        cargarMesas();
-        cargarMeseros();
-        cargarProductos();
+        cargarDatos();
     </script>
 </body>
 </html>
