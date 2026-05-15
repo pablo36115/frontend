@@ -124,7 +124,7 @@
                     <a href="mesero.html">Mesero</a>
                     <a href="cajero.html">Cajero</a>
                     <a href="gerente.html">Gerente</a>
-                    <a class="activo" href="administrador.html">Administrador</a>
+                    <a href="administrador.html">Administrador</a>
                     <a href="#" id="nav-logout">Cerrar Sesión</a>
                 </nav>
             </div>
@@ -199,20 +199,12 @@
     </footer>
 
     <script type="module">
-        import { authService } from './src/services/auth.service.js';
+        import { initAuthGuard } from './src/utils/auth-guard.js';
         import { productosService } from './src/services/productos.service.js';
         import { categoriasService } from './src/services/categorias.service.js';
         import { mostrarMensaje } from './src/utils/helpers.js';
 
-        if (!authService.isAuthenticated()) {
-            window.location.href = 'login.html';
-        }
-
-        document.getElementById('nav-logout').addEventListener('click', (e) => {
-            e.preventDefault();
-            authService.logout();
-            window.location.href = 'login.html';
-        });
+        const auth = initAuthGuard();
 
         let productoEditando = null;
 

@@ -25,6 +25,10 @@
                     <a href="menu.html">Menú</a>
                     <a href="galeria.html">Galería</a>
                     <a href="contacto.html">Contacto</a>
+                    <a href="mesero.html">Mesero</a>
+                    <a href="cajero.html">Cajero</a>
+                    <a href="gerente.html">Gerente</a>
+                    <a href="administrador.html">Administrador</a>
                     <a href="login.html" id="nav-login">Iniciar Sesión</a>
                     <a href="#" id="nav-logout" style="display:none;">Cerrar Sesión</a>
                 </nav>
@@ -216,6 +220,25 @@ En ese momento, nació Agropecuaria Cristhian Mujica, dedicada a la siembra y co
             navLogout.style.padding = '0.5rem 1rem';
             navLogout.style.borderRadius = '0.5rem';
             navLogout.style.marginLeft = '0.5rem';
+
+            const rol = authService.getRol();
+            const ROLE_PAGES = {
+                'Administrador': 'administrador.html',
+                'Mesero': 'mesero.html',
+                'Cajero': 'cajero.html',
+                'Gerente': 'gerente.html',
+                'Cocinero': 'cocinero.html'
+            };
+
+            const navLinks = document.querySelectorAll('.nav-principal a');
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                Object.entries(ROLE_PAGES).forEach(([r, pagina]) => {
+                    if (href === pagina && r !== rol) {
+                        link.style.display = 'none';
+                    }
+                });
+            });
         }
 
         navLogout.addEventListener('click', (e) => {

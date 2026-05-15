@@ -295,7 +295,7 @@
                     <a href="menu.html">Menú</a>
                     <a href="galeria.html">Galería</a>
                     <a href="contacto.html">Contacto</a>
-                    <a class="activo" href="mesero.html">Mesero</a>
+                    <a href="mesero.html">Mesero</a>
                     <a href="cajero.html">Cajero</a>
                     <a href="gerente.html">Gerente</a>
                     <a href="administrador.html">Administrador</a>
@@ -382,22 +382,14 @@
     </footer>
 
     <script type="module">
-        import { authService } from './src/services/auth.service.js';
+        import { initAuthGuard } from './src/utils/auth-guard.js';
         import { mesasService } from './src/services/mesas.service.js';
         import { usuariosService } from './src/services/usuarios.service.js';
         import { productosService } from './src/services/productos.service.js';
         import { ordenesService } from './src/services/ordenes.service.js';
         import { mostrarMensaje } from './src/utils/helpers.js';
 
-        if (!authService.isAuthenticated()) {
-            window.location.href = 'login.html';
-        }
-
-        document.getElementById('nav-logout').addEventListener('click', (e) => {
-            e.preventDefault();
-            authService.logout();
-            window.location.href = 'login.html';
-        });
+        const auth = initAuthGuard();
 
         let productos = [];
         let categorias = [];
