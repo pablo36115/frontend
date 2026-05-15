@@ -108,6 +108,32 @@
         .filtros-contenedor select:focus {
             border-color: #e9a84b;
         }
+        .filtros-contenedor input[type="date"] {
+            padding: 0.8rem 1.5rem;
+            font-size: 1.4rem;
+            border: 2px solid #ccc;
+            border-radius: 0.5rem;
+            background-color: white;
+            cursor: pointer;
+            outline: none;
+        }
+        .filtros-contenedor input[type="date"]:focus {
+            border-color: #e9a84b;
+        }
+        .filtros-contenedor .btn {
+            padding: 0.8rem 1.5rem;
+            font-size: 1.4rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 0.5rem;
+            background-color: #e9a84b;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .filtros-contenedor .btn:hover {
+            background-color: #d4922e;
+        }
 
         .dashboard-resumen {
             display: grid;
@@ -207,6 +233,48 @@
             font-size: 1.2rem;
             font-weight: bold;
         }
+        .btn-pequeno {
+            padding: 0.5rem 1rem;
+            font-size: 1.3rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            color: white;
+            text-transform: uppercase;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        .btn-pequeno:hover {
+            opacity: 0.85;
+        }
+        .btn-editar {
+            background-color: #e9a84b;
+        }
+        .btn {
+            padding: 1rem 2rem;
+            font-size: 1.6rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            background-color: #e9a84b;
+            color: white;
+            transition: background-color 0.2s;
+        }
+        .btn:hover {
+            background-color: #d4922e;
+        }
+        #nav-logout {
+            background-color: #d9534f;
+            color: white !important;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            margin-left: 0.5rem;
+        }
+        #nav-logout:hover {
+            background-color: #c9302c;
+        }
     </style>
 </head>
 <body>
@@ -227,6 +295,7 @@
                     <a href="cajero.html">Cajero</a>
                     <a class="activo" href="gerente.html">Gerente</a>
                     <a href="administrador.html">Administrador</a>
+                    <a href="#" id="nav-logout">Cerrar Sesión</a>
                 </nav>
             </div>
 
@@ -362,7 +431,18 @@
     </footer>
 
     <script type="module">
+        import { authService } from './src/services/auth.service.js';
         import { contabilidadService } from './src/services/contabilidad.service.js';
+
+        if (!authService.isAuthenticated()) {
+            window.location.href = 'login.html';
+        }
+
+        document.getElementById('nav-logout').addEventListener('click', (e) => {
+            e.preventDefault();
+            authService.logout();
+            window.location.href = 'login.html';
+        });
 
         const hoy = new Date();
         const primerDia = new Date(hoy.getFullYear(), hoy.getMonth(), 1);

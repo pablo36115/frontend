@@ -52,12 +52,58 @@
             color: white;
             text-transform: uppercase;
             font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        .btn-pequeno:hover {
+            opacity: 0.85;
         }
         .btn-editar {
             background-color: #e9a84b;
         }
         .btn-eliminar {
             background-color: #d9534f;
+        }
+        .btn {
+            padding: 1rem 2rem;
+            font-size: 1.6rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            background-color: #e9a84b;
+            color: white;
+            transition: background-color 0.2s;
+        }
+        .btn:hover {
+            background-color: #d4922e;
+        }
+        .alinear-derecha {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+        select {
+            padding: 0.8rem 1rem;
+            border: 2px solid #ddd;
+            border-radius: 0.5rem;
+            font-size: 1.6rem;
+            width: 100%;
+        }
+        select:focus {
+            border-color: #e9a84b;
+            outline: none;
+        }
+        #nav-logout {
+            background-color: #d9534f;
+            color: white !important;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            margin-left: 0.5rem;
+        }
+        #nav-logout:hover {
+            background-color: #c9302c;
         }
     </style>
 </head>
@@ -79,6 +125,7 @@
                     <a href="cajero.html">Cajero</a>
                     <a href="gerente.html">Gerente</a>
                     <a class="activo" href="administrador.html">Administrador</a>
+                    <a href="#" id="nav-logout">Cerrar Sesión</a>
                 </nav>
             </div>
 
@@ -152,9 +199,20 @@
     </footer>
 
     <script type="module">
+        import { authService } from './src/services/auth.service.js';
         import { productosService } from './src/services/productos.service.js';
         import { categoriasService } from './src/services/categorias.service.js';
         import { mostrarMensaje } from './src/utils/helpers.js';
+
+        if (!authService.isAuthenticated()) {
+            window.location.href = 'login.html';
+        }
+
+        document.getElementById('nav-logout').addEventListener('click', (e) => {
+            e.preventDefault();
+            authService.logout();
+            window.location.href = 'login.html';
+        });
 
         let productoEditando = null;
 

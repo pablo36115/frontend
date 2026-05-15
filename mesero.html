@@ -269,6 +269,16 @@
             padding: 2rem;
             font-style: italic;
         }
+        #nav-logout {
+            background-color: #d9534f;
+            color: white !important;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            margin-left: 0.5rem;
+        }
+        #nav-logout:hover {
+            background-color: #c9302c;
+        }
     </style>
 </head>
 <body>
@@ -289,6 +299,7 @@
                     <a href="cajero.html">Cajero</a>
                     <a href="gerente.html">Gerente</a>
                     <a href="administrador.html">Administrador</a>
+                    <a href="#" id="nav-logout">Cerrar Sesión</a>
                 </nav>
             </div>
 
@@ -371,11 +382,22 @@
     </footer>
 
     <script type="module">
+        import { authService } from './src/services/auth.service.js';
         import { mesasService } from './src/services/mesas.service.js';
         import { usuariosService } from './src/services/usuarios.service.js';
         import { productosService } from './src/services/productos.service.js';
         import { ordenesService } from './src/services/ordenes.service.js';
         import { mostrarMensaje } from './src/utils/helpers.js';
+
+        if (!authService.isAuthenticated()) {
+            window.location.href = 'login.html';
+        }
+
+        document.getElementById('nav-logout').addEventListener('click', (e) => {
+            e.preventDefault();
+            authService.logout();
+            window.location.href = 'login.html';
+        });
 
         let productos = [];
         let categorias = [];

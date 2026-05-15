@@ -99,6 +99,16 @@
             font-size: 1.8rem;
             padding: 1.5rem;
         }
+        #nav-logout {
+            background-color: #d9534f;
+            color: white !important;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            margin-left: 0.5rem;
+        }
+        #nav-logout:hover {
+            background-color: #c9302c;
+        }
     </style>
 </head>
 <body>
@@ -111,15 +121,16 @@
                 </div>
 
                 <nav class="nav-principal">
-                    <a class="activo" href="index.html">Inicio</a>
+                    <a href="index.html">Inicio</a>
                     <a href="nosotros.html">Nosotros</a>
                     <a href="menu.html">Menú</a>
                     <a href="galeria.html">Galería</a>
                     <a href="contacto.html">Contacto</a>
                     <a href="mesero.html">Mesero</a>
-                    <a href="cajero.html">Cajero</a>
+                    <a class="activo" href="cajero.html">Cajero</a>
                     <a href="gerente.html">Gerente</a>
                     <a href="administrador.html">Administrador</a>
+                    <a href="#" id="nav-logout">Cerrar Sesión</a>
                 </nav>
             </div>
 
@@ -218,8 +229,19 @@
     </footer>
 
     <script type="module">
+        import { authService } from './src/services/auth.service.js';
         import { ordenesService } from './src/services/ordenes.service.js';
         import { contabilidadService } from './src/services/contabilidad.service.js';
+
+        if (!authService.isAuthenticated()) {
+            window.location.href = 'login.html';
+        }
+
+        document.getElementById('nav-logout').addEventListener('click', (e) => {
+            e.preventDefault();
+            authService.logout();
+            window.location.href = 'login.html';
+        });
 
         let ordenSeleccionada = null;
         let splitPagos = [{ metodo: 'efectivo', monto: 0 }];
