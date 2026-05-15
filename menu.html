@@ -52,76 +52,8 @@
     <section class="nuestro-menu">
         <h2 class="heading-blanco"><span>Nuestro delicioso</span>Menú</h2>
 
-        <div class="contenedor grid-menu">
-            <section class="menu cafe">
-                <h3>Café</h3>
-                <ul>
-                    <li>
-                        <p>Café Latte <span>Café Espresso con leche caliente evaporada</span> </p>
-                        <p class="precio">$3</p>
-                    </li>
-                    <li>
-                        <p>Café Mocha <span>Espresso con crema batida</span> </p>
-                        <p class="precio">$3</p>
-                    </li>
-                    <li>
-                        <p>Café Americano <span>Café Negro</span> </p>
-                        <p class="precio">$3,5</p>
-                    </li>
-                    <li>
-                        <p>Capuccino<span>Espresso con una capa suave de espuma</span> </p>
-                        <p class="precio">$4</p>
-                    </li>
-                    <li>
-                        <p>Café Mocha Frio<span>Espresso, dulce con mocha y leche.</span> </p>
-                        <p class="precio">$4</p>
-                    </li>
-                    <li>
-                        <p>Mocha Frio Quemado<span>Espresso, hielo, con azucar quemada y mantequilla.</span> </p>
-                        <p class="precio">$4,5</p>
-                    </li>
-                    <li>
-                        <p>Latte con Caramelo<span>Espresso, leche y caramelo.</span> </p>
-                        <p class="precio">$4,5</p>
-                    </li>
-                </ul>
-
-            </section>
-
-            <section class="menu comida">
-                <h3>Comida</h3>
-
-                <ul>
-                    <li>
-                        <p>Baguette de Pollo <span>Delicioso Baguette con pollo a la plancha</span> </p>
-                        <p class="precio">$12</p>
-                    </li>
-                    <li>
-                        <p>Baguette Pollo y Queso <span>Baguette combinado con Pollo y Queso Manchego</span> </p>
-                        <p class="precio">$13</p>
-                    </li>
-                    <li>
-                        <p>Baguette con Tocino<span>Baguette con especias y verduras, además de tocino</span> </p>
-                        <p class="precio">$14,5</p>
-                    </li>
-                    <li>
-                        <p>Baguette de Jamón<span>Delicioso Baguette con Jamón y Especias</span> </p>
-                        <p class="precio">$14</p>
-                    </li>
-                    <li>
-                        <p>Baguette con Jamón, Queso y Tocino<span>El especial de la casa</span> </p>
-                        <p class="precio">$15</p>
-                    </li>
-                    <li>
-                        <p>Sandwich de Pollo<span>Delicioso sandwich con Pollo y especies</span> </p>
-                        <p class="precio">$8</p>
-                    </li>
-                    <li>
-                        <p>Sandwich de Jamón y queso<span>Queso Amarillo con Jamón y Queso</span> </p>
-                        <p class="precio">$9</p>
-                    </li>
-                </ul>
-            </section>
+        <div class="contenedor grid-menu" id="menu-dinamico">
+            <p style="color: white; text-align: center; grid-column: 1 / -1;">Cargando menú...</p>
         </div>
     </section>
 
@@ -148,5 +80,53 @@
         <p class="copyright">Todos los derechos reservados. La Cafetería</p>
     </footer>
 
+    <script>
+        const API_BASE = 'http://localhost:3800/api';
+
+        async function cargarMenu() {
+            try {
+                const [resProductos, resCategorias] = await Promise.all([
+                    fetch(`${API_BASE}/productos`),
+                    fetch(`${API_BASE}/categorias`)
+                ]);
+
+                const jsonProductos = await resProductos.json();
+                const jsonCategorias = await resCategorias.json();
+
+                const productos = (jsonProductos.data || []).filter(p => p.estado);
+                const categorias = jsonCategorias.data || [];
+
+                const container = document.getElementById('menu-dinamico');
+
+                if (productos.length === 0) {
+                    container.innerHTML = '<p style="color: white; text-align: center; grid-column: 1 / -1;">No hay productos disponibles</p>';
+                    return;
+                }
+
+                container.innerHTML = categorias.map(cat => {
+                    const productosCat = productos.filter(p => p.categoria_id === cat.id);
+                    if (productosCat.length === 0) return '';
+
+                    return `
+                        <section class="menu">
+                            <h3>${cat.nombre}</h3>
+                            <ul>
+                                ${productosCat.map(p => `
+                                    <li>
+                                        <p>${p.nombre} <span>${p.cantidad > 0 ? 'Disponible' : 'Agotado'}</span></p>
+                                        <p class="precio">$${p.precio.toFixed(2)}</p>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </section>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Error cargando menú:', error);
+            }
+        }
+
+        cargarMenu();
+    </script>
 </body>
 </html>

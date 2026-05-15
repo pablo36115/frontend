@@ -69,33 +69,21 @@
                 <div class="campo">
                     <label for="mesa">Seleccionar Mesa:</label>
                     <select id="mesa" name="mesa" required>
-                        <option value="" disabled selected>-- Seleccione --</option>
-                        <option value="1">Mesa 1 (Terraza)</option>
-                        <option value="2">Mesa 2 (Interior)</option>
-                        <option value="3">Mesa 3 (Ventana)</option>
+                        <option value="" disabled selected>-- Cargando mesas... --</option>
+                    </select>
+                </div>
+                <div class="campo">
+                    <label for="mesero">Mesero:</label>
+                    <select id="mesero" required>
+                        <option value="" disabled selected>-- Cargando meseros... --</option>
                     </select>
                 </div>
             </fieldset>
 
             <fieldset>
                 <legend>Bebidas y Platillos</legend>
-                <div class="grid-platillos">
-                    <div class="platillo-item">
-                        <label>Café Americano</label>
-                        <input type="number" min="0" value="0" class="campo">
-                    </div>
-                    <div class="platillo-item">
-                        <label>Capuchino</label>
-                        <input type="number" min="0" value="0" class="campo">
-                    </div>
-                    <div class="platillo-item">
-                        <label>Pastel de Chocolate</label>
-                        <input type="number" min="0" value="0" class="campo">
-                    </div>
-                    <div class="platillo-item">
-                        <label>Té de Manzanilla</label>
-                        <input type="number" min="0" value="0" class="campo">
-                    </div>
+                <div class="grid-platillos" id="lista-productos">
+                    <p style="grid-column: 1 / -1; text-align: center; color: #666;">Cargando productos...</p>
                 </div>
 
                 <div class="campo">
@@ -105,9 +93,11 @@
             </fieldset>
 
             <div class="alinear-derecha">
-                <input type="submit" value="Enviar Comanda a Cocina" class="btn">
+                <button type="button" id="btn-enviar" class="btn">Enviar Comanda a Cocina</button>
             </div>
         </form>
+
+        <div id="mensaje-feedback" style="margin-top: 2rem; padding: 1rem; border-radius: 0.5rem; display: none;"></div>
     </main>
 
     <footer class="footer">
@@ -118,5 +108,124 @@
             </div>
         </div>
     </footer>
+
+    <script>
+        const API_BASE = 'http://localhost:3800/api';
+
+        async function cargarMesas() {
+            try {
+                const res = await fetch(`${API_BASE}/mesas`);
+                const json = await res.json();
+                const mesas = json.data || [];
+                const select = document.getElementById('mesa');
+                select.innerHTML = '<option value="" disabled selected>-- Seleccione --</option>' +
+                    mesas.filter(m => m.estado).map(m => `<option value="${m.id}">${m.nombre} (Cap: ${m.capacidad})</option>`).join('');
+            } catch (error) {
+                console.error('Error cargando mesas:', error);
+            }
+        }
+
+        async function cargarMeseros() {
+            try {
+                const res = await fetch(`${API_BASE}/usuarios`);
+                const json = await res.json();
+                const usuarios = json.data || [];
+                const select = document.getElementById('mesero');
+                select.innerHTML = '<option value="" disabled selected>-- Seleccione --</option>' +
+                    usuarios.map(u => `<option value="${u.id}">${u.nombre}</option>`).join('');
+            } catch (error) {
+                console.error('Error cargando usuarios:', error);
+            }
+        }
+
+        async function cargarProductos() {
+            try {
+                const res = await fetch(`${API_BASE}/productos`);
+                const json = await res.json();
+                const productos = json.data || [];
+                const container = document.getElementById('lista-productos');
+                
+                if (productos.length === 0) {
+                    container.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: #666;">No hay productos disponibles</p>';
+                    return;
+                }
+
+                container.innerHTML = productos.filter(p => p.estado).map(p => `
+                    <div class="platillo-item" data-id="${p.id}" data-precio="${p.precio}">
+                        <label>${p.nombre}</label>
+                        <p style="color: #e9a84b; font-weight: bold; margin: 0.5rem 0;">$${p.precio.toFixed(2)}</p>
+                        <input type="number" min="0" value="0" class="campo cantidad-producto" data-id="${p.id}" data-precio="${p.precio}">
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error cargando productos:', error);
+            }
+        }
+
+        document.getElementById('btn-enviar').addEventListener('click', async function() {
+            const mesaId = document.getElementById('mesa').value;
+            const usuarioId = document.getElementById('mesero').value;
+            const notas = document.getElementById('notas').value;
+
+            if (!mesaId || !usuarioId) {
+                mostrarMensaje('Seleccione mesa y mesero', 'error');
+                return;
+            }
+
+            const detalles = [];
+            document.querySelectorAll('.cantidad-producto').forEach(input => {
+                const cantidad = parseInt(input.value) || 0;
+                if (cantidad > 0) {
+                    detalles.push({
+                        producto_id: parseInt(input.dataset.id),
+                        cantidad: cantidad,
+                        precio: parseFloat(input.dataset.precio)
+                    });
+                }
+            });
+
+            if (detalles.length === 0) {
+                mostrarMensaje('Seleccione al menos un producto', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/ordenes`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        mesa_id: parseInt(mesaId),
+                        usuario_id: parseInt(usuarioId),
+                        notas: notas || null,
+                        detalles: detalles
+                    })
+                });
+
+                if (res.ok) {
+                    mostrarMensaje('Orden enviada exitosamente', 'success');
+                    document.getElementById('notas').value = '';
+                    document.querySelectorAll('.cantidad-producto').forEach(input => input.value = 0);
+                } else {
+                    const err = await res.json();
+                    mostrarMensaje(err.mensaje || 'Error al crear orden', 'error');
+                }
+            } catch (error) {
+                mostrarMensaje('Error de conexión', 'error');
+            }
+        });
+
+        function mostrarMensaje(texto, tipo) {
+            const el = document.getElementById('mensaje-feedback');
+            el.textContent = texto;
+            el.style.display = 'block';
+            el.style.backgroundColor = tipo === 'success' ? '#d4edda' : '#f8d7da';
+            el.style.color = tipo === 'success' ? '#155724' : '#721c24';
+            setTimeout(() => { el.style.display = 'none'; }, 4000);
+        }
+
+        cargarMesas();
+        cargarMeseros();
+        cargarProductos();
+    </script>
 </body>
 </html>

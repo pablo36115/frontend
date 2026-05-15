@@ -4,8 +4,11 @@
   "description": "Aprendiendo SASS, Gulp, CSS Grid",
   "main": "index.js",
   "scripts": {
+    "dev": "npx serve -p 3000",
+    "build": "gulp",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "type": "module",
   "author": "Juan De la torre @codigoconjuan",
   "license": "ISC",
   "devDependencies": {

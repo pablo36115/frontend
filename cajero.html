@@ -142,24 +142,13 @@
         <div class="grid-caja">
             <aside class="lista-comandas">
                 <h3>Cuentas Pendientes</h3>
-                
-                <div class="comanda-pendiente activa">
-                    <h4>Mesa 2 (Interior)</h4>
-                    <p>Atendido por: Carlos</p>
-                    <p><strong>Total: $12.50</strong></p>
-                </div>
-                
-                <div class="comanda-pendiente">
-                    <h4>Mesa 1 (Terraza)</h4>
-                    <p>Atendido por: Ana</p>
-                    <p><strong>Total: $8.00</strong></p>
-                </div>
+                <div id="lista-ordenes"></div>
             </aside>
 
-            <section class="ticket-cobro">
+            <section class="ticket-cobro" id="ticket-cobro" style="display: none;">
                 <div class="ticket-header">
                     <h3>Cafetería</h3>
-                    <p>Ticket de Consumo - Mesa 2</p>
+                    <p>Ticket de Consumo - <span id="mesa-nombre">Mesa</span></p>
                 </div>
 
                 <table class="tabla-ticket">
@@ -170,55 +159,58 @@
                             <th>Importe</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td>2</td>
-                            <td>Capuchino</td>
-                            <td>$6.00</td>
-                        </tr>
-                        <tr>
-                            <td>1</td>
-                            <td>Pastel de Chocolate</td>
-                            <td>$4.50</td>
-                        </tr>
-                        <tr>
-                            <td>1</td>
-                            <td>Agua Mineral</td>
-                            <td>$2.00</td>
-                        </tr>
-                    </tbody>
+                    <tbody id="detalles-orden"></tbody>
                 </table>
 
                 <div class="totales-ticket">
-                    <p>Subtotal: $12.50</p>
-                    <p>Impuesto (IVA): $0.00</p>
-                    <p class="total-final">Total a Pagar: $12.50</p>
+                    <p>Subtotal: $<span id="subtotal">0.00</span></p>
+                    <p>Impuesto (IVA 16%): $<span id="impuesto">0.00</span></p>
+                    <p class="total-final">Total a Pagar: $<span id="total-pagar">0.00</span></p>
                 </div>
 
-                <form class="formulario metodos-pago">
+                <div class="metodos-pago">
                     <fieldset>
                         <legend>Procesar Pago</legend>
                         <div class="campo">
                             <label for="metodo">Método de Pago:</label>
                             <select id="metodo" required>
                                 <option value="" disabled selected>-- Seleccione --</option>
-                                <option value="efectivo_usd">Efectivo (Divisas)</option>
+                                <option value="efectivo">Efectivo</option>
                                 <option value="punto">Punto de Venta</option>
-                                <option value="pago_movil">Pago Móvil (Bs)</option>
+                                <option value="pago_movil">Pago Móvil</option>
                             </select>
                         </div>
-                        <div class="campo">
-                            <label for="monto">Monto Recibido:</label>
-                            <input type="number" id="monto" placeholder="Monto entregado por el cliente" step="0.01">
+                        <div id="panel-efectivo">
+                            <div class="campo">
+                                <label for="monto">Monto Recibido:</label>
+                                <input type="number" id="monto" placeholder="Monto entregado" step="0.01">
+                            </div>
+                            <div class="campo">
+                                <label for="vuelto">Vuelto a Entregar:</label>
+                                <input type="text" id="vuelto" value="$0.00" readonly style="background-color: #eee; font-weight: bold;">
+                            </div>
                         </div>
-                        <div class="campo">
-                            <label for="vuelto">Vuelto a Entregar:</label>
-                            <input type="text" id="vuelto" value="$0.00" readonly style="background-color: #eee; font-weight: bold;">
+                        <div id="panel-split" style="display: none;">
+                            <div class="campo">
+                                <label>Split de Pago:</label>
+                                <div id="split-container"></div>
+                                <button type="button" id="btn-agregar-split" class="btn" style="margin-top: 0.5rem;">+ Agregar método</button>
+                            </div>
+                        </div>
+                        <div class="campo" style="margin-top: 1rem;">
+                            <label>
+                                <input type="checkbox" id="usar-split"> Usar múltiples métodos de pago (Split)
+                            </label>
                         </div>
                     </fieldset>
-                    
-                    <input type="submit" value="Confirmar Pago e Imprimir Factura" class="btn btn-pagar">
-                </form>
+
+                    <button type="button" id="btn-procesar-pago" class="btn btn-pagar">Confirmar Pago</button>
+                </div>
+            </section>
+
+            <section class="ticket-cobro" id="sin-orden" style="text-align: center; padding: 4rem;">
+                <h3 style="color: #666;">No hay órdenes pendientes</h3>
+                <p style="color: #999;">Seleccione una orden para procesar el pago</p>
             </section>
         </div>
     </main>
@@ -231,5 +223,211 @@
             </div>
         </div>
     </footer>
+
+    <script>
+        const API_BASE = 'http://localhost:3800/api';
+        let ordenSeleccionada = null;
+        let splitPagos = [{ metodo: 'efectivo', monto: 0 }];
+
+        async function cargarOrdenes() {
+            try {
+                const res = await fetch(`${API_BASE}/ordenes`);
+                const json = await res.json();
+                const ordenes = json.data || [];
+                
+                const container = document.getElementById('lista-ordenes');
+                
+                if (ordenes.length === 0) {
+                    container.innerHTML = '<p style="color: #666; text-align: center;">No hay órdenes pendientes</p>';
+                    return;
+                }
+                
+                container.innerHTML = ordenes.map(orden => `
+                    <div class="comanda-pendiente" onclick="seleccionarOrden(${orden.id})" id="orden-${orden.id}">
+                        <h4>${orden.mesa.nombre}</h4>
+                        <p>Atendido por: ${orden.usuario.nombre}</p>
+                        <p><strong>Total: $${orden.total.toFixed(2)}</strong></p>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error cargando órdenes:', error);
+            }
+        }
+
+        function seleccionarOrden(id) {
+            document.querySelectorAll('.comanda-pendiente').forEach(el => el.classList.remove('activa'));
+            document.getElementById(`orden-${id}`).classList.add('activa');
+        }
+
+        async function seleccionarOrden(id) {
+            try {
+                const res = await fetch(`${API_BASE}/ordenes`);
+                const json = await res.json();
+                const orden = (json.data || []).find(o => o.id === id);
+                
+                if (!orden) return;
+                
+                ordenSeleccionada = orden;
+                document.querySelectorAll('.comanda-pendiente').forEach(el => el.classList.remove('activa'));
+                document.getElementById(`orden-${id}`).classList.add('activa');
+                
+                document.getElementById('sin-orden').style.display = 'none';
+                document.getElementById('ticket-cobro').style.display = 'block';
+                document.getElementById('mesa-nombre').textContent = orden.mesa.nombre;
+                
+                const subtotal = orden.total / 1.16;
+                const impuesto = orden.total - subtotal;
+                
+                document.getElementById('subtotal').textContent = subtotal.toFixed(2);
+                document.getElementById('impuesto').textContent = impuesto.toFixed(2);
+                document.getElementById('total-pagar').textContent = orden.total.toFixed(2);
+                
+                const detallesHtml = orden.detalles.map(det => `
+                    <tr>
+                        <td>${det.cantidad}</td>
+                        <td>${det.producto.nombre}</td>
+                        <td>$${(det.precio * det.cantidad).toFixed(2)}</td>
+                    </tr>
+                `).join('');
+                document.getElementById('detalles-orden').innerHTML = detallesHtml;
+                
+                resetearFormasPago();
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function resetearFormasPago() {
+            splitPagos = [{ metodo: 'efectivo', monto: 0 }];
+            document.getElementById('usar-split').checked = false;
+            document.getElementById('panel-split').style.display = 'none';
+            document.getElementById('panel-efectivo').style.display = 'block';
+            document.getElementById('metodo').value = '';
+            document.getElementById('monto').value = '';
+            document.getElementById('vuelto').value = '$0.00';
+            actualizarSplitContainer();
+        }
+
+        function actualizarSplitContainer() {
+            const container = document.getElementById('split-container');
+            container.innerHTML = splitPagos.map((p, i) => `
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem; align-items: center;">
+                    <select class="split-metodo" data-index="${i}" style="flex: 1;">
+                        <option value="efectivo" ${p.metodo === 'efectivo' ? 'selected' : ''}>Efectivo</option>
+                        <option value="punto" ${p.metodo === 'punto' ? 'selected' : ''}>Punto</option>
+                        <option value="pago_movil" ${p.metodo === 'pago_movil' ? 'selected' : ''}>Pago Móvil</option>
+                    </select>
+                    <input type="number" class="split-monto" data-index="${i}" value="${p.monto || 0}" placeholder="Monto" step="0.01" style="width: 100px;">
+                    ${splitPagos.length > 1 ? `<button type="button" onclick="removerSplit(${i})" style="padding: 0.5rem;">×</button>` : ''}
+                </div>
+            `).join('');
+            
+            document.querySelectorAll('.split-metodo').forEach(el => {
+                el.addEventListener('change', (e) => {
+                    splitPagos[parseInt(e.target.dataset.index)].metodo = e.target.value;
+                });
+            });
+            
+            document.querySelectorAll('.split-monto').forEach(el => {
+                el.addEventListener('input', (e) => {
+                    splitPagos[parseInt(e.target.dataset.index)].monto = parseFloat(e.target.value) || 0;
+                });
+            });
+        }
+
+        function removerSplit(index) {
+            splitPagos.splice(index, 1);
+            actualizarSplitContainer();
+        }
+
+        document.getElementById('usar-split').addEventListener('change', function() {
+            if (this.checked) {
+                document.getElementById('panel-split').style.display = 'block';
+                document.getElementById('panel-efectivo').style.display = 'none';
+                splitPagos = [{ metodo: 'efectivo', monto: parseFloat(document.getElementById('total-pagar').textContent) }];
+            } else {
+                document.getElementById('panel-split').style.display = 'none';
+                document.getElementById('panel-efectivo').style.display = 'block';
+                splitPagos = [{ metodo: 'efectivo', monto: 0 }];
+            }
+            actualizarSplitContainer();
+        });
+
+        document.getElementById('btn-agregar-split').addEventListener('click', function() {
+            splitPagos.push({ metodo: 'efectivo', monto: 0 });
+            actualizarSplitContainer();
+        });
+
+        document.getElementById('metodo').addEventListener('change', function() {
+            const total = parseFloat(document.getElementById('total-pagar').textContent);
+            if (this.value === 'efectivo') {
+                document.getElementById('panel-efectivo').style.display = 'block';
+            } else {
+                document.getElementById('panel-efectivo').style.display = 'none';
+                document.getElementById('monto').value = total.toFixed(2);
+            }
+        });
+
+        document.getElementById('monto').addEventListener('input', function() {
+            const total = parseFloat(document.getElementById('total-pagar').textContent);
+            const recibido = parseFloat(this.value) || 0;
+            const vuelto = Math.max(0, recibido - total);
+            document.getElementById('vuelto').value = '$' + vuelto.toFixed(2);
+        });
+
+        document.getElementById('btn-procesar-pago').addEventListener('click', async function() {
+            if (!ordenSeleccionada) {
+                alert('Seleccione una orden primero');
+                return;
+            }
+            
+            const usarSplit = document.getElementById('usar-split').checked;
+            const total = ordenSeleccionada.total;
+            
+            let payload;
+            
+            if (usarSplit) {
+                const sumaSplit = splitPagos.reduce((acc, p) => acc + (parseFloat(p.monto) || 0), 0);
+                if (Math.abs(sumaSplit - total) > 0.01) {
+                    alert('La suma de los pagos debe ser igual al total');
+                    return;
+                }
+                payload = { pagos: splitPagos, total };
+            } else {
+                const metodo = document.getElementById('metodo').value;
+                if (!metodo) {
+                    alert('Seleccione un método de pago');
+                    return;
+                }
+                const montoRecibido = parseFloat(document.getElementById('monto').value) || total;
+                const cambio = Math.max(0, montoRecibido - total);
+                payload = { metodo, monto_entregado: montoRecibido, total, cambio };
+            }
+            
+            try {
+                const res = await fetch(`${API_BASE}/ordenes/${ordenSeleccionada.id}/pagar`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (res.ok) {
+                    alert('Pago procesado exitosamente');
+                    ordenSeleccionada = null;
+                    document.getElementById('ticket-cobro').style.display = 'none';
+                    document.getElementById('sin-orden').style.display = 'block';
+                    cargarOrdenes();
+                } else {
+                    alert('Error al procesar pago');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al procesar pago');
+            }
+        });
+
+        cargarOrdenes();
+        setInterval(cargarOrdenes, 10000);
+    </script>
 </body>
 </html>
